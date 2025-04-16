@@ -1,0 +1,299 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ material.title }} - CampusExchange{% endblock %}
+
+{% block content %}
+    <div class="container" style="margin-top: 3rem; margin-bottom: 3rem;">
+        <!-- Material Detail Section -->
+        <div class="material-detail">
+            <div class="material-detail-image-container">
+                {% if material.image_url %}
+                    <img src="{{ material.image_url }}" alt="{{ material.title }}" class="material-detail-image">
+                {% else %}
+                    <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da" alt="{{ material.title }}" class="material-detail-image">
+                {% endif %}
+            </div>
+            
+            <div class="material-detail-info">
+                <h1 class="material-detail-title">{{ material.title }}</h1>
+                
+                <div class="material-detail-meta">
+                    {% if material.course_code %}
+                        <div class="material-detail-meta-item">
+                            <i data-feather="bookmark"></i>
+                            <span>{{ material.course_code }}</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="material-detail-meta-item">
+                        <i data-feather="book"></i>
+                        <span>{{ material.material_type|replace('_', ' ')|title }}</span>
+                    </div>
+                    
+                    {% if material.subject %}
+                        <div class="material-detail-meta-item">
+                            <i data-feather="grid"></i>
+                            <span>{{ material.subject }}</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="material-detail-meta-item">
+                        <i data-feather="calendar"></i>
+                        <span>{{ material.publish_date.strftime('%b %d, %Y') }}</span>
+                    </div>
+                    
+                    <div class="material-detail-meta-item">
+                        <i data-feather="map-pin"></i>
+                        <span>{{ material.location or 'Location not specified' }}</span>
+                    </div>
+                    
+                    <div class="material-detail-meta-item">
+                        <i data-feather="tag"></i>
+                        <span>{{ material.condition|replace('_', ' ')|title }}</span>
+                    </div>
+                </div>
+                
+                <div class="material-detail-price">
+                    {% if material.price %}
+                        ${{ material.price }}
+                    {% else %}
+                        Free
+                    {% endif %}
+                </div>
+                
+                <div class="material-detail-description">
+                    <h3>Description</h3>
+                    <p>{{ material.description }}</p>
+                </div>
+                
+                <div class="material-detail-tags">
+                    <h3>Tags</h3>
+                    <div class="tags-container">
+                        {% if material.course_code %}
+                            <span class="tag course">{{ material.course_code }}</span>
+                        {% endif %}
+                        
+                        {% if material.subject %}
+                            <span class="tag subject">{{ material.subject }}</span>
+                        {% endif %}
+                        
+                        <span class="tag material-type">{{ material.material_type|replace('_', ' ')|title }}</span>
+                        
+                        {% for tag in material.tags %}
+                            <span class="tag {{ tag.category }}">{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="material-detail-availability">
+                    <h3>Availability</h3>
+                    {% if material.availability %}
+                        <div class="availability available">
+                            <i data-feather="check-circle"></i>
+                            <span>Currently Available</span>
+                        </div>
+                    {% else %}
+                        <div class="availability unavailable">
+                            <i data-feather="x-circle"></i>
+                            <span>Not Available</span>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {% if current_user.is_authenticated and material.user_id == current_user.id %}
+                    <div class="material-detail-actions" style="margin-top: 1.5rem;">
+                        <a href="{{ url_for('update_material', material_id=material.id) }}" class="btn-secondary">Edit</a>
+                        <button type="button" class="btn-danger" data-toggle="modal" data-target="#deleteModal">Delete</button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Owner Information -->
+        <div class="material-detail-owner">
+            <img src="{{ material.owner.profile_image }}" alt="{{ material.owner.username }}" class="material-detail-owner-avatar">
+            
+            <div class="material-detail-owner-info">
+                <div class="material-detail-owner-name">{{ material.owner.username }}</div>
+                
+                <div class="material-detail-owner-rating">
+                    {% set avg_rating = material.owner.ratings_received|map(attribute='score')|list|sum / material.owner.ratings_received|length if material.owner.ratings_received|length > 0 else 0 %}
+                    <div class="rating-stars" data-rating="{{ avg_rating }}" data-max-rating="5" data-show-text="true"></div>
+                    <span>({{ material.owner.ratings_received|length }} ratings)</span>
+                </div>
+                
+                <div class="material-detail-owner-joined">Member since {{ material.owner.joined_date.strftime('%b %Y') }}</div>
+            </div>
+            
+            {% if current_user.is_authenticated and material.user_id != current_user.id %}
+                <a href="mailto:{{ material.owner.email }}" class="btn-primary">Contact Seller</a>
+            {% endif %}
+        </div>
+        
+        <!-- Rating Form -->
+        {% if current_user.is_authenticated and material.user_id != current_user.id %}
+            <div class="rating-form">
+                <h3>Rate this seller</h3>
+                
+                <form method="POST" action="{{ url_for('rate_user', material_id=material.id, user_id=material.user_id) }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="form-group">
+                        <label for="rating-score">Your Rating</label>
+                        <div class="rating-form-stars" data-input="rating-score"></div>
+                        <input type="hidden" id="rating-score" name="score" value="">
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.comment.label }}
+                        {{ form.comment(class="form-control", placeholder="Share your experience with this seller...") }}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.submit(class="btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+        
+        <!-- Ratings List -->
+        <div class="ratings-container">
+            <h3>Seller Ratings</h3>
+            
+            <div class="rating-list">
+                {% for rating in material.owner.ratings_received %}
+                    <div class="rating-item" data-rating="{{ rating.score }}">
+                        <div class="rating-header">
+                            <div class="rating-user">{{ rating.rater.username }}</div>
+                            <div class="rating-stars" data-rating="{{ rating.score }}" data-max-rating="5"></div>
+                        </div>
+                        
+                        {% if rating.comment %}
+                            <div class="rating-text">{{ rating.comment }}</div>
+                        {% endif %}
+                        
+                        <div class="rating-date">{{ rating.timestamp.strftime('%b %d, %Y') }}</div>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i data-feather="star"></i>
+                        </div>
+                        <div class="empty-state-text">No ratings yet.</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Similar Materials -->
+        <div class="similar-materials">
+            <h3>Similar Materials</h3>
+            
+            <div class="materials-grid">
+                {% set similar_materials = [] %}
+                {% for m in material.tags|map(attribute='materials')|sum(start=[])|unique|list %}
+                    {% if m.id != material.id and m not in similar_materials %}
+                        {% if similar_materials|length < 3 %}
+                            {% set _ = similar_materials.append(m) %}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% for similar in similar_materials %}
+                    <div class="material-card">
+                        {% if similar.image_url %}
+                            <img src="{{ similar.image_url }}" alt="{{ similar.title }}" class="material-card-image">
+                        {% else %}
+                            <img src="https://images.unsplash.com/photo-1518152006812-edab29b069ac" alt="{{ similar.title }}" class="material-card-image">
+                        {% endif %}
+                        
+                        <div class="material-card-content">
+                            <h3 class="material-card-title">{{ similar.title }}</h3>
+                            
+                            <div class="material-card-info">
+                                {{ similar.material_type|title }} {% if similar.course_code %} · {{ similar.course_code }}{% endif %}
+                            </div>
+                            
+                            <div class="material-card-price">
+                                {% if similar.price %}
+                                    ${{ similar.price }}
+                                {% else %}
+                                    Free
+                                {% endif %}
+                            </div>
+                            
+                            <div style="margin-top: 1rem;">
+                                <a href="{{ url_for('material_details', material_id=similar.id) }}" class="btn-primary">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-state-text">No similar materials found.</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    {% if current_user.is_authenticated and material.user_id == current_user.id %}
+        <div class="modal" id="deleteModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirm Delete</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete this material? This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" data-dismiss="modal">Cancel</button>
+                        <form action="{{ url_for('delete_material', material_id=material.id) }}" method="POST">
+                            <button type="submit" class="btn-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/rating.js') }}"></script>
+    <script>
+        // Initialize modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteModal = document.getElementById('deleteModal');
+            const modalButtons = document.querySelectorAll('[data-toggle="modal"]');
+            const closeButtons = document.querySelectorAll('[data-dismiss="modal"]');
+            
+            // Show modal
+            modalButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const target = this.getAttribute('data-target');
+                    const modal = document.querySelector(target);
+                    modal.style.display = 'block';
+                });
+            });
+            
+            // Close modal
+            closeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const modal = this.closest('.modal');
+                    modal.style.display = 'none';
+                });
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
+                }
+            });
+        });
+    </script>
+{% endblock %}

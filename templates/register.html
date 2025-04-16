@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% block title %}Register - CampusExchange{% endblock %}
+
+{% block content %}
+    <div class="container" style="max-width: 600px; margin-top: 3rem; margin-bottom: 3rem;">
+        <div style="background-color: white; border-radius: var(--border-radius); padding: 2rem; box-shadow: var(--box-shadow);">
+            <h1 style="text-align: center; margin-bottom: 2rem;">Create an Account</h1>
+            
+            <form method="POST" action="{{ url_for('register') }}" data-validate>
+                {{ form.hidden_tag() }}
+                
+                <div class="form-group">
+                    {{ form.username.label }}
+                    {{ form.username(class="form-control", placeholder="Choose a username") }}
+                    {% if form.username.errors %}
+                        {% for error in form.username.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <div class="help-text">Username must be 3-20 characters long</div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.email.label }}
+                    {{ form.email(class="form-control", placeholder="Enter your email") }}
+                    {% if form.email.errors %}
+                        {% for error in form.email.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.password.label }}
+                    {{ form.password(class="form-control", placeholder="Create a password") }}
+                    {% if form.password.errors %}
+                        {% for error in form.password.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <div class="help-text">Password must be at least 6 characters</div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.confirm_password.label }}
+                    {{ form.confirm_password(class="form-control", placeholder="Confirm your password") }}
+                    {% if form.confirm_password.errors %}
+                        {% for error in form.confirm_password.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.submit(class="btn-primary", style="width: 100%;") }}
+                </div>
+            </form>
+            
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,297 @@
+{% extends "layout.html" %}
+
+{% block title %}Search Results - CampusExchange{% endblock %}
+
+{% block content %}
+    <!-- Search Hero Section -->
+    <section class="search-hero">
+        <div class="container">
+            <h1>Find Academic Materials</h1>
+            
+            <div class="search-container">
+                <form action="{{ url_for('search') }}" method="GET" id="search-form" class="search-form">
+                    <div class="row">
+                        <div class="col">
+                            <input type="text" name="query" id="search-query" value="{{ request.args.get('query', '') }}" placeholder="Search for textbooks, notes, or materials..." class="form-control">
+                        </div>
+                        <div class="col" style="max-width: 200px;">
+                            <button type="submit" class="btn-primary" style="width: 100%;">Search</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    
+    <div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
+        <div class="row">
+            <!-- Filters Sidebar -->
+            <div class="col" style="max-width: 280px;">
+                <div class="search-filters">
+                    <div class="search-filters-header">
+                        <h3 class="search-filters-title">Filters</h3>
+                        <button id="filter-toggle" class="search-filters-toggle">Hide Filters</button>
+                    </div>
+                    
+                    <div id="filter-container" class="search-filters-body show">
+                        <form action="{{ url_for('search') }}" method="GET">
+                            <!-- Keep the current query -->
+                            {% if request.args.get('query') %}
+                                <input type="hidden" name="query" value="{{ request.args.get('query') }}">
+                            {% endif %}
+                            
+                            <div class="search-filters-group">
+                                <label for="material_type">Material Type</label>
+                                <select name="material_type" id="material_type" class="form-control">
+                                    <option value="all" {% if request.args.get('material_type') == 'all' or not request.args.get('material_type') %}selected{% endif %}>All Types</option>
+                                    <option value="textbook" {% if request.args.get('material_type') == 'textbook' %}selected{% endif %}>Textbook</option>
+                                    <option value="notes" {% if request.args.get('material_type') == 'notes' %}selected{% endif %}>Lecture Notes</option>
+                                    <option value="practice_material" {% if request.args.get('material_type') == 'practice_material' %}selected{% endif %}>Practice Material</option>
+                                    <option value="solution_manual" {% if request.args.get('material_type') == 'solution_manual' %}selected{% endif %}>Solution Manual</option>
+                                    <option value="other" {% if request.args.get('material_type') == 'other' %}selected{% endif %}>Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="search-filters-group">
+                                <label>Tags</label>
+                                <div class="tags-container">
+                                    {% for tag in all_tags %}
+                                        <div class="tag-item">
+                                            <input type="checkbox" name="tags" value="{{ tag.id }}" id="filter-tag-{{ tag.id }}" class="tag-checkbox filter-tag" 
+                                                {% if request.args.getlist('tags') and tag.id|string in request.args.getlist('tags') %}checked{% endif %}>
+                                            <label for="filter-tag-{{ tag.id }}" class="tag-label {{ tag.category if tag.category else 'custom' }}">{{ tag.name }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="search-filters-group">
+                                <label for="sort_by">Sort By</label>
+                                <select name="sort_by" id="sort_by" class="form-control">
+                                    <option value="relevance" {% if request.args.get('sort_by') == 'relevance' or not request.args.get('sort_by') %}selected{% endif %}>Relevance</option>
+                                    <option value="recent" {% if request.args.get('sort_by') == 'recent' %}selected{% endif %}>Most Recent</option>
+                                    <option value="price_low" {% if request.args.get('sort_by') == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                                    <option value="price_high" {% if request.args.get('sort_by') == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                                </select>
+                            </div>
+                            
+                            <div class="search-filters-group">
+                                <div style="display: flex; align-items: center;">
+                                    <input type="checkbox" name="availability" id="availability" value="true" 
+                                        {% if request.args.get('availability') == 'true' %}checked{% endif %}
+                                        style="width: auto; margin-right: 0.5rem;">
+                                    <label for="availability">Available Only</label>
+                                </div>
+                            </div>
+                            
+                            <div class="search-filters-actions">
+                                <button type="submit" class="btn-primary" style="width: 100%;">Apply Filters</button>
+                                <a href="{{ url_for('search') }}" class="btn-secondary" style="width: 100%; margin-top: 0.5rem;">Clear Filters</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Search Results -->
+            <div class="col">
+                <div class="search-results">
+                    <div class="search-results-header">
+                        <div class="search-results-count">
+                            <span id="results-count">{{ materials|length }}</span> results
+                            {% if request.args.get('query') %}
+                                for "<strong>{{ request.args.get('query') }}</strong>"
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Materials Grid -->
+                    <div class="materials-grid">
+                        {% for material in materials %}
+                            <div class="material-card" data-type="{{ material.material_type }}" data-price="{{ material.price or 0 }}" data-available="{{ material.availability|lower }}" data-tags="{% for tag in material.tags %}{{ tag.id }}{% if not loop.last %},{% endif %}{% endfor %}">
+                                {% if material.image_url %}
+                                    <img src="{{ material.image_url }}" alt="{{ material.title }}" class="material-card-image">
+                                {% else %}
+                                    {% set image_index = loop.index0 % 6 %}
+                                    {% set image_urls = [
+                                        "https://images.unsplash.com/photo-1744370618500-a2645bf7ffe7",
+                                        "https://images.unsplash.com/photo-1731983568657-84b7a4f61e27",
+                                        "https://images.unsplash.com/photo-1521587760476-6c12a4b040da",
+                                        "https://images.unsplash.com/photo-1518152006812-edab29b069ac",
+                                        "https://images.unsplash.com/photo-1561489422-45de3d015e3e",
+                                        "https://images.unsplash.com/photo-1544830281-1d5169d6b2af"
+                                    ] %}
+                                    <img src="{{ image_urls[image_index] }}" alt="{{ material.title }}" class="material-card-image">
+                                {% endif %}
+                                
+                                <div class="material-card-content">
+                                    <h3 class="material-card-title">{{ material.title }}</h3>
+                                    
+                                    <div class="material-card-info">
+                                        {{ material.material_type|replace('_', ' ')|title }} {% if material.course_code %} · {{ material.course_code }}{% endif %}
+                                    </div>
+                                    
+                                    <div class="material-card-price">
+                                        {% if material.price %}
+                                            ${{ material.price }}
+                                        {% else %}
+                                            Free
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="material-card-availability">
+                                        {% if material.availability %}
+                                            <span class="availability-badge available">Available</span>
+                                        {% else %}
+                                            <span class="availability-badge unavailable">Not Available</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="material-card-tags">
+                                        {% if material.course_code %}
+                                            <span class="tag course">{{ material.course_code }}</span>
+                                        {% endif %}
+                                        
+                                        {% if material.subject %}
+                                            <span class="tag subject">{{ material.subject }}</span>
+                                        {% endif %}
+                                        
+                                        <span class="tag material-type">{{ material.material_type|replace('_', ' ')|title }}</span>
+                                        
+                                        {% for tag in material.tags[:2] %}
+                                            <span class="tag {{ tag.category }}">{{ tag.name }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <div style="margin-top: 1rem;">
+                                        <a href="{{ url_for('material_details', material_id=material.id) }}" class="btn-primary">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div id="empty-results" class="empty-state" style="grid-column: 1 / -1;">
+                                <div class="empty-state-icon">
+                                    <i data-feather="search"></i>
+                                </div>
+                                <div class="empty-state-text">No materials found matching your search criteria.</div>
+                                <p>Try adjusting your filters or search with different keywords.</p>
+                                <a href="{{ url_for('search') }}" class="btn-secondary">Clear Search</a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Featured Categories Section -->
+    <section class="featured-categories">
+        <div class="container">
+            <h2>Browse Popular Categories</h2>
+            
+            <div class="category-cards">
+                <div class="row">
+                    <div class="col">
+                        <a href="{{ url_for('search') }}?subject=Computer+Science" class="category-card">
+                            <div class="category-icon">
+                                <i data-feather="code"></i>
+                            </div>
+                            <h3>Computer Science</h3>
+                            <p>Programming, algorithms, data structures</p>
+                        </a>
+                    </div>
+                    
+                    <div class="col">
+                        <a href="{{ url_for('search') }}?subject=Mathematics" class="category-card">
+                            <div class="category-icon">
+                                <i data-feather="circle"></i>
+                            </div>
+                            <h3>Mathematics</h3>
+                            <p>Calculus, statistics, linear algebra</p>
+                        </a>
+                    </div>
+                    
+                    <div class="col">
+                        <a href="{{ url_for('search') }}?subject=Engineering" class="category-card">
+                            <div class="category-icon">
+                                <i data-feather="tool"></i>
+                            </div>
+                            <h3>Engineering</h3>
+                            <p>Mechanical, electrical, civil engineering</p>
+                        </a>
+                    </div>
+                    
+                    <div class="col">
+                        <a href="{{ url_for('search') }}?subject=Business" class="category-card">
+                            <div class="category-icon">
+                                <i data-feather="briefcase"></i>
+                            </div>
+                            <h3>Business</h3>
+                            <p>Economics, management, finance</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Live Search Results Dropdown -->
+    <div id="live-search-results" class="live-search-results"></div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize filter functionality
+            const filterForm = document.querySelector('.search-filters form');
+            if (filterForm) {
+                filterForm.addEventListener('submit', function(event) {
+                    // Remove empty filter values before submitting
+                    const inputs = this.querySelectorAll('input, select');
+                    inputs.forEach(input => {
+                        if (input.value === '' && input.name !== 'query') {
+                            input.disabled = true;
+                        }
+                    });
+                });
+            }
+            
+            // Handle image loading errors
+            const materialImages = document.querySelectorAll('.material-card-image');
+            materialImages.forEach(img => {
+                img.addEventListener('error', function() {
+                    // Replace with a default image if loading fails
+                    this.src = 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da';
+                });
+            });
+            
+            // Highlight active filters
+            const highlightActiveFilters = () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                // Highlight material type
+                const materialType = urlParams.get('material_type');
+                if (materialType) {
+                    const typeOption = document.querySelector(`option[value="${materialType}"]`);
+                    if (typeOption) typeOption.parentElement.classList.add('active-filter');
+                }
+                
+                // Highlight sort option
+                const sortBy = urlParams.get('sort_by');
+                if (sortBy) {
+                    const sortOption = document.querySelector(`option[value="${sortBy}"]`);
+                    if (sortOption) sortOption.parentElement.classList.add('active-filter');
+                }
+                
+                // Highlight availability filter
+                if (urlParams.get('availability') === 'true') {
+                    const availabilityCheckbox = document.getElementById('availability');
+                    if (availabilityCheckbox) availabilityCheckbox.parentElement.classList.add('active-filter');
+                }
+            };
+            
+            highlightActiveFilters();
+        });
+    </script>
+{% endblock %}

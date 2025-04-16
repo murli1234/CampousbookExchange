@@ -1,0 +1,257 @@
+{% extends "layout.html" %}
+
+{% block title %}CampusExchange - Discover Academic Materials{% endblock %}
+
+{% block content %}
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Discover and Share Academic Materials</h1>
+            <p>CampusExchange is a community-driven platform where students can discover, share, and exchange academic materials, textbooks, and course resources.</p>
+            
+            <div class="search-container">
+                <form action="{{ url_for('search') }}" method="GET" class="search-form">
+                    <div class="row">
+                        <div class="col">
+                            <input type="text" name="query" placeholder="Search for textbooks, notes, or materials..." class="form-control">
+                        </div>
+                        <div class="col" style="max-width: 200px;">
+                            <button type="submit" class="btn-primary" style="width: 100%;">Search</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tags-container">
+                        {% for tag in popular_tags %}
+                            <div class="tag {{ tag.category }}">{{ tag.name }}</div>
+                        {% endfor %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Featured Images Section -->
+    <section class="featured-section">
+        <div class="container">
+            <h2>Explore Academic Resources</h2>
+            
+            <div class="featured-images">
+                <div class="row">
+                    <div class="col">
+                        <div class="featured-image-card">
+                            <img src="https://images.unsplash.com/photo-1544830281-1d5169d6b2af" alt="Textbooks" class="featured-image">
+                            <div class="featured-image-overlay">
+                                <h3>Textbooks</h3>
+                                <a href="{{ url_for('search') }}?material_type=textbook" class="btn-secondary">Browse</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="featured-image-card">
+                            <img src="https://images.unsplash.com/photo-1590579491624-f98f36d4c763" alt="Study Materials" class="featured-image">
+                            <div class="featured-image-overlay">
+                                <h3>Study Materials</h3>
+                                <a href="{{ url_for('search') }}?material_type=notes" class="btn-secondary">Browse</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="featured-image-card">
+                            <img src="https://images.unsplash.com/photo-1519452575417-564c1401ecc0" alt="Practice Materials" class="featured-image">
+                            <div class="featured-image-overlay">
+                                <h3>Practice Materials</h3>
+                                <a href="{{ url_for('search') }}?material_type=practice_material" class="btn-secondary">Browse</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Recent Materials Section -->
+    <section class="recent-materials">
+        <div class="container">
+            <div class="section-header">
+                <h2>Recently Added Materials</h2>
+                <a href="{{ url_for('search') }}" class="btn-secondary">View All</a>
+            </div>
+            
+            <div class="materials-grid">
+                {% for material in materials %}
+                    <div class="material-card">
+                        {% if material.image_url %}
+                            <img src="{{ material.image_url }}" alt="{{ material.title }}" class="material-card-image">
+                        {% else %}
+                            <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da" alt="{{ material.title }}" class="material-card-image">
+                        {% endif %}
+                        
+                        <div class="material-card-content">
+                            <h3 class="material-card-title">{{ material.title }}</h3>
+                            
+                            <div class="material-card-info">
+                                {{ material.material_type|title }} {% if material.course_code %} · {{ material.course_code }}{% endif %}
+                            </div>
+                            
+                            <div class="material-card-price">
+                                {% if material.price %}
+                                    ${{ material.price }}
+                                {% else %}
+                                    Free
+                                {% endif %}
+                            </div>
+                            
+                            <div class="material-card-tags">
+                                {% if material.course_code %}
+                                    <span class="tag course">{{ material.course_code }}</span>
+                                {% endif %}
+                                
+                                {% if material.subject %}
+                                    <span class="tag subject">{{ material.subject }}</span>
+                                {% endif %}
+                                
+                                <span class="tag material-type">{{ material.material_type|replace('_', ' ')|title }}</span>
+                                
+                                {% for tag in material.tags[:2] %}
+                                    <span class="tag {{ tag.category }}">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
+                            
+                            <div style="margin-top: 1rem;">
+                                <a href="{{ url_for('material_details', material_id=material.id) }}" class="btn-primary">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-state-icon">
+                            <i data-feather="book"></i>
+                        </div>
+                        <div class="empty-state-text">No materials available yet.</div>
+                        <a href="{{ url_for('add_material') }}" class="btn-primary">Add Your First Material</a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    
+    <!-- How It Works Section -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2>How CampusExchange Works</h2>
+            
+            <div class="row">
+                <div class="col">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <i data-feather="search"></i>
+                        </div>
+                        <h3>Find Materials</h3>
+                        <p>Search for academic materials using multiple tags like course codes, subjects, or material types.</p>
+                    </div>
+                </div>
+                
+                <div class="col">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <i data-feather="message-circle"></i>
+                        </div>
+                        <h3>Connect</h3>
+                        <p>Contact material owners directly and arrange exchanges or purchases.</p>
+                    </div>
+                </div>
+                
+                <div class="col">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <i data-feather="star"></i>
+                        </div>
+                        <h3>Rate & Review</h3>
+                        <p>Help the community by rating materials and users after your transactions.</p>
+                    </div>
+                </div>
+                
+                <div class="col">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <i data-feather="upload"></i>
+                        </div>
+                        <h3>Share Materials</h3>
+                        <p>List your own academic materials to help fellow students and earn some extra money.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Featured Categories -->
+    <section class="featured-categories">
+        <div class="container">
+            <h2>Popular Categories</h2>
+            
+            <div class="category-cards">
+                <div class="row">
+                    <div class="col">
+                        <a href="{{ url_for('search') }}?subject=Computer+Science" class="category-card">
+                            <div class="category-icon">
+                                <i data-feather="code"></i>
+                            </div>
+                            <h3>Computer Science</h3>
+                            <p>Programming, algorithms, data structures</p>
+                        </a>
+                    </div>
+                    
+                    <div class="col">
+                        <a href="{{ url_for('search') }}?subject=Mathematics" class="category-card">
+                            <div class="category-icon">
+                                <i data-feather="circle"></i>
+                            </div>
+                            <h3>Mathematics</h3>
+                            <p>Calculus, statistics, linear algebra</p>
+                        </a>
+                    </div>
+                    
+                    <div class="col">
+                        <a href="{{ url_for('search') }}?subject=Engineering" class="category-card">
+                            <div class="category-icon">
+                                <i data-feather="tool"></i>
+                            </div>
+                            <h3>Engineering</h3>
+                            <p>Mechanical, electrical, civil engineering</p>
+                        </a>
+                    </div>
+                    
+                    <div class="col">
+                        <a href="{{ url_for('search') }}?subject=Business" class="category-card">
+                            <div class="category-icon">
+                                <i data-feather="briefcase"></i>
+                            </div>
+                            <h3>Business</h3>
+                            <p>Economics, management, finance</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to discover course materials?</h2>
+                <p>Join our community of students sharing academic resources and helping each other succeed.</p>
+                
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('add_material') }}" class="btn-primary">Share Your Materials</a>
+                {% else %}
+                    <a href="{{ url_for('register') }}" class="btn-primary">Create an Account</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock %}

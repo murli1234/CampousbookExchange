@@ -1,0 +1,290 @@
+{% extends "layout.html" %}
+
+{% block title %}{% if legend == 'Update Material' %}Edit{% else %}Add{% endif %} Material - CampusExchange{% endblock %}
+
+{% block content %}
+    <div class="container" style="margin-top: 3rem; margin-bottom: 3rem;">
+        <div style="background-color: white; border-radius: var(--border-radius); padding: 2rem; box-shadow: var(--box-shadow);">
+            <h1>{{ legend }}</h1>
+            
+            <form method="POST" enctype="multipart/form-data" data-validate>
+                {{ form.hidden_tag() }}
+                
+                <div class="form-group">
+                    {{ form.title.label }}
+                    {{ form.title(class="form-control", placeholder="Enter material title") }}
+                    {% if form.title.errors %}
+                        {% for error in form.title.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.description.label }}
+                    {{ form.description(class="form-control", rows=5, placeholder="Describe the material in detail...") }}
+                    {% if form.description.errors %}
+                        {% for error in form.description.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            {{ form.price.label }}
+                            {{ form.price(class="form-control", placeholder="$ Amount (leave blank if free)", type="number", step="0.01", min="0") }}
+                            {% if form.price.errors %}
+                                {% for error in form.price.errors %}
+                                    <div class="form-error">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                            <div class="help-text">Leave blank if the material is free</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col">
+                        <div class="form-group">
+                            {{ form.condition.label }}
+                            {{ form.condition(class="form-control") }}
+                            {% if form.condition.errors %}
+                                {% for error in form.condition.errors %}
+                                    <div class="form-error">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            {{ form.material_type.label }}
+                            {{ form.material_type(class="form-control") }}
+                            {% if form.material_type.errors %}
+                                {% for error in form.material_type.errors %}
+                                    <div class="form-error">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="col">
+                        <div class="form-group">
+                            {{ form.location.label }}
+                            {{ form.location(class="form-control", placeholder="Where can buyers pick this up?") }}
+                            {% if form.location.errors %}
+                                {% for error in form.location.errors %}
+                                    <div class="form-error">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            {{ form.course_code.label }}
+                            {{ form.course_code(class="form-control", placeholder="E.g., CS101, MATH201") }}
+                            {% if form.course_code.errors %}
+                                {% for error in form.course_code.errors %}
+                                    <div class="form-error">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                            <div class="help-text">Enter the course code this material is for</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col">
+                        <div class="form-group">
+                            {{ form.subject.label }}
+                            {{ form.subject(class="form-control", placeholder="E.g., Computer Science, Mathematics") }}
+                            {% if form.subject.errors %}
+                                {% for error in form.subject.errors %}
+                                    <div class="form-error">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                {% if legend == 'Update Material' %}
+                    <div class="form-group">
+                        <div style="display: flex; align-items: center;">
+                            {{ form.availability(style="width: auto; margin-right: 0.5rem;") }}
+                            {{ form.availability.label }}
+                        </div>
+                        {% if form.availability.errors %}
+                            {% for error in form.availability.errors %}
+                                <div class="form-error">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label>Tags</label>
+                    <div class="tags-container">
+                        {% for choice in form.tags %}
+                            {{ choice(class="tag-checkbox", id="tag-" + choice.id|string) }}
+                            <label for="tag-{{ choice.id }}" class="tag-label {{ choice.data.category if choice.data.category else 'custom' }}">{{ choice.label.text }}</label>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if form.tags.errors %}
+                        {% for error in form.tags.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.new_tags.label }}
+                    {{ form.new_tags(class="form-control", placeholder="Add custom tags separated by commas (e.g., Spring 2023, Recommended, Digital)") }}
+                    {% if form.new_tags.errors %}
+                        {% for error in form.new_tags.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <div class="help-text">Enter multiple tags separated by commas</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Material Preview</label>
+                    <div class="material-preview">
+                        <div class="material-card">
+                            <img id="preview-image" src="{% if material and material.image_url %}{{ material.image_url }}{% else %}https://images.unsplash.com/photo-1521587760476-6c12a4b040da{% endif %}" class="material-card-image" alt="Material preview">
+                            <div class="material-card-content">
+                                <h3 class="material-card-title" id="preview-title">{% if form.title.data %}{{ form.title.data }}{% else %}Material Title{% endif %}</h3>
+                                <div class="material-card-info" id="preview-info">
+                                    <span id="preview-type">{% if form.material_type.data %}{{ form.material_type.data|replace('_', ' ')|title }}{% else %}Textbook{% endif %}</span>
+                                    <span id="preview-course">{% if form.course_code.data %} · {{ form.course_code.data }}{% endif %}</span>
+                                </div>
+                                <div class="material-card-price" id="preview-price">
+                                    {% if form.price.data %}
+                                        ${{ form.price.data }}
+                                    {% else %}
+                                        Free
+                                    {% endif %}
+                                </div>
+                                <div class="tag-preview" id="preview-tags">
+                                    <!-- Tags will be dynamically added here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn-primary">
+                        {% if legend == 'Update Material' %}
+                            Save Changes
+                        {% else %}
+                            Add Material
+                        {% endif %}
+                    </button>
+                    <a href="{{ url_for('home') }}" class="btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Preview title
+            const titleInput = document.getElementById('title');
+            const previewTitle = document.getElementById('preview-title');
+            
+            if (titleInput && previewTitle) {
+                titleInput.addEventListener('input', function() {
+                    previewTitle.textContent = this.value || 'Material Title';
+                });
+            }
+            
+            // Preview type
+            const typeSelect = document.getElementById('material_type');
+            const previewType = document.getElementById('preview-type');
+            
+            if (typeSelect && previewType) {
+                typeSelect.addEventListener('change', function() {
+                    previewType.textContent = this.options[this.selectedIndex].text || 'Textbook';
+                });
+            }
+            
+            // Preview course code
+            const courseInput = document.getElementById('course_code');
+            const previewCourse = document.getElementById('preview-course');
+            
+            if (courseInput && previewCourse) {
+                courseInput.addEventListener('input', function() {
+                    previewCourse.textContent = this.value ? ' · ' + this.value : '';
+                });
+            }
+            
+            // Preview price
+            const priceInput = document.getElementById('price');
+            const previewPrice = document.getElementById('preview-price');
+            
+            if (priceInput && previewPrice) {
+                priceInput.addEventListener('input', function() {
+                    previewPrice.textContent = this.value ? '$' + this.value : 'Free';
+                });
+            }
+            
+            // Preview tags
+            const tagCheckboxes = document.querySelectorAll('.tag-checkbox');
+            const newTagsInput = document.getElementById('new_tags');
+            const previewTags = document.getElementById('preview-tags');
+            
+            function updateTagsPreview() {
+                // Clear existing tags
+                previewTags.innerHTML = '';
+                
+                // Add selected checkboxes
+                tagCheckboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        const label = document.querySelector(`label[for="${checkbox.id}"]`);
+                        const tagCategory = label.classList.contains('course') ? 'course' : 
+                                          label.classList.contains('subject') ? 'subject' : 
+                                          label.classList.contains('material-type') ? 'material-type' : 
+                                          label.classList.contains('semester') ? 'semester' : 'custom';
+                        
+                        const tag = document.createElement('span');
+                        tag.classList.add('tag', tagCategory);
+                        tag.textContent = label.textContent;
+                        previewTags.appendChild(tag);
+                    }
+                });
+                
+                // Add new tags if any
+                if (newTagsInput.value) {
+                    const newTags = newTagsInput.value.split(',');
+                    newTags.forEach(tagName => {
+                        if (tagName.trim()) {
+                            const tag = document.createElement('span');
+                            tag.classList.add('tag', 'custom');
+                            tag.textContent = tagName.trim();
+                            previewTags.appendChild(tag);
+                        }
+                    });
+                }
+            }
+            
+            // Update tags preview when checkboxes or new tags input changes
+            tagCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateTagsPreview);
+            });
+            
+            if (newTagsInput) {
+                newTagsInput.addEventListener('input', updateTagsPreview);
+            }
+            
+            // Initial update
+            updateTagsPreview();
+        });
+    </script>
+{% endblock %}
