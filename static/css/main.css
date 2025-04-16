@@ -112,6 +112,50 @@ p {
     color: var(--secondary-color);
 }
 
+/* Mobile menu toggle */
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.mobile-menu-toggle svg {
+    width: 24px;
+    height: 24px;
+}
+
+@media (max-width: 768px) {
+    .site-nav {
+        display: none;
+        width: 100%;
+        padding: 1rem 0;
+    }
+    
+    .site-nav.show {
+        display: block;
+    }
+    
+    .site-nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .site-nav li {
+        margin: 0.5rem 0;
+    }
+    
+    .mobile-menu-toggle {
+        display: block;
+    }
+    
+    .site-header .container {
+        flex-wrap: wrap;
+    }
+}
+
 .btn-primary {
     background-color: var(--secondary-color);
     color: white;
@@ -406,27 +450,56 @@ textarea:focus {
 /* Flash messages */
 .flashes {
     margin-bottom: var(--base-spacing);
+    position: relative;
+    z-index: 10;
 }
 
 .flash {
     padding: 0.75rem 1rem;
     border-radius: var(--border-radius);
     margin-bottom: 0.5rem;
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .flash.success {
     background-color: #C6F6D5;
     color: #276749;
+    border-left: 4px solid #48BB78;
 }
 
 .flash.danger {
     background-color: #FED7D7;
     color: #9B2C2C;
+    border-left: 4px solid #E53E3E;
 }
 
 .flash.info {
     background-color: #BEE3F8;
     color: #2B6CB0;
+    border-left: 4px solid #4299E1;
+}
+
+.flash-close {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.25rem;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.flash-close:hover {
+    opacity: 1;
 }
 
 /* Material Details Page */
