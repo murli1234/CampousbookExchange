@@ -60,10 +60,70 @@ function initializeDropdowns() {
 // Initialize mobile menu toggle
 function initializeMobileMenu() {
     const menuToggle = document.querySelector('.mobile-menu-toggle');
-    if (menuToggle) {
-        menuToggle.addEventListener('click', function() {
-            const mobileMenu = document.querySelector('.site-nav');
+    const mobileMenu = document.querySelector('.site-nav');
+    
+    if (menuToggle && mobileMenu) {
+        // Handle menu toggle click
+        menuToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             mobileMenu.classList.toggle('show');
+            
+            // Toggle menu icon (menu/close)
+            const menuIcon = menuToggle.querySelector('svg.feather-menu');
+            const closeIcon = menuToggle.querySelector('svg.feather-x');
+            
+            if (menuIcon && closeIcon) {
+                if (mobileMenu.classList.contains('show')) {
+                    menuIcon.style.display = 'none';
+                    closeIcon.style.display = 'block';
+                } else {
+                    menuIcon.style.display = 'block';
+                    closeIcon.style.display = 'none';
+                }
+            }
+            
+            // Optional: add GSAP animation if available
+            if (typeof gsap !== 'undefined') {
+                if (mobileMenu.classList.contains('show')) {
+                    gsap.fromTo(mobileMenu, 
+                        { opacity: 0, y: -20 }, 
+                        { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
+                    );
+                }
+            }
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+            if (mobileMenu.classList.contains('show') && !mobileMenu.contains(e.target) && e.target !== menuToggle && !menuToggle.contains(e.target)) {
+                mobileMenu.classList.remove('show');
+                
+                // Toggle menu icons back
+                const menuIcon = menuToggle.querySelector('svg.feather-menu');
+                const closeIcon = menuToggle.querySelector('svg.feather-x');
+                
+                if (menuIcon && closeIcon) {
+                    menuIcon.style.display = 'block';
+                    closeIcon.style.display = 'none';
+                }
+            }
+        });
+        
+        // Close menu when window is resized to desktop size
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768 && mobileMenu.classList.contains('show')) {
+                mobileMenu.classList.remove('show');
+                
+                // Toggle menu icons back
+                const menuIcon = menuToggle.querySelector('svg.feather-menu');
+                const closeIcon = menuToggle.querySelector('svg.feather-x');
+                
+                if (menuIcon && closeIcon) {
+                    menuIcon.style.display = 'block';
+                    closeIcon.style.display = 'none';
+                }
+            }
         });
     }
 }

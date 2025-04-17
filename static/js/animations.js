@@ -1,5 +1,11 @@
 // GSAP Animations for CampusExchange
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if GSAP is loaded
+    if (typeof gsap === 'undefined') {
+        console.warn('GSAP not loaded, animations disabled');
+        return;
+    }
+    
     // Initialize GSAP animations
     initAnimations();
     
