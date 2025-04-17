@@ -243,6 +243,103 @@
     <script src="{{ url_for('static', filename='js/search.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize GSAP animations for search results
+            if (typeof gsap !== 'undefined') {
+                // Animate search hero section
+                const searchHeroTimeline = gsap.timeline();
+                searchHeroTimeline.from('.search-hero h1', {
+                    y: -30,
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: 'power2.out'
+                })
+                .from('.search-container', {
+                    y: 20,
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: 'power2.out'
+                }, '-=0.3');
+                
+                // Animate filter sidebar
+                searchHeroTimeline.from('.search-filters', {
+                    x: -30,
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: 'power2.out'
+                }, '-=0.3');
+                
+                // Animate search results header
+                searchHeroTimeline.from('.search-results-header', {
+                    opacity: 0,
+                    duration: 0.5,
+                    ease: 'power2.out'
+                }, '-=0.4');
+                
+                // Staggered animation for material cards
+                const materialCards = document.querySelectorAll('.material-card');
+                if (materialCards.length > 0) {
+                    gsap.from(materialCards, {
+                        opacity: 0,
+                        y: 30,
+                        duration: 0.6,
+                        stagger: 0.1,
+                        ease: 'power2.out',
+                        delay: 0.3
+                    });
+                }
+                
+                // Animate empty state if no results
+                const emptyState = document.querySelector('#empty-results');
+                if (emptyState) {
+                    gsap.from(emptyState, {
+                        opacity: 0,
+                        scale: 0.9,
+                        duration: 0.8,
+                        delay: 0.2,
+                        ease: 'power2.out'
+                    });
+                }
+                
+                // Scroll-triggered animations for the categories section
+                if (typeof ScrollTrigger !== 'undefined') {
+                    const categoryCards = document.querySelectorAll('.category-card');
+                    if (categoryCards.length > 0) {
+                        gsap.from(categoryCards, {
+                            scrollTrigger: {
+                                trigger: '.featured-categories',
+                                start: 'top 80%'
+                            },
+                            y: 50,
+                            opacity: 0,
+                            stagger: 0.15,
+                            duration: 0.8,
+                            ease: 'power2.out'
+                        });
+                    }
+                }
+                
+                // Add hover animations for material cards
+                materialCards.forEach(card => {
+                    card.addEventListener('mouseenter', function() {
+                        gsap.to(this, {
+                            y: -8,
+                            boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
+                            duration: 0.3,
+                            ease: 'power2.out'
+                        });
+                    });
+                    
+                    card.addEventListener('mouseleave', function() {
+                        gsap.to(this, {
+                            y: 0,
+                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                            duration: 0.3,
+                            ease: 'power2.out'
+                        });
+                    });
+                });
+            }
+            
             // Initialize filter functionality
             const filterForm = document.querySelector('.search-filters form');
             if (filterForm) {
@@ -254,6 +351,18 @@
                             input.disabled = true;
                         }
                     });
+                    
+                    // Add animation for filter submission
+                    if (typeof gsap !== 'undefined') {
+                        // Animate the submit button
+                        gsap.to(this.querySelector('button[type="submit"]'), {
+                            scale: 1.05,
+                            duration: 0.2,
+                            ease: 'power2.out',
+                            yoyo: true,
+                            repeat: 1
+                        });
+                    }
                 });
             }
             

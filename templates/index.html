@@ -276,44 +276,65 @@
                 duration: 0.8,
                 ease: 'power3.out'
             }, '-=0.4')
-            .from('.tags-container .tag', {
-                opacity: 0,
-                scale: 0.8,
-                stagger: 0.05,
-                ease: 'back.out(1.7)'
-            }, '-=0.2');
+            // Only animate tags if they exist
+            const tags = document.querySelectorAll('.tags-container .tag');
+            if (tags.length > 0) {
+                heroTimeline.from(tags, {
+                    opacity: 0,
+                    scale: 0.8,
+                    stagger: 0.05,
+                    ease: 'back.out(1.7)'
+                }, '-=0.2');
+            }
             
             // Featured image cards animation
-            gsap.utils.toArray('.featured-image-card').forEach(card => {
-                gsap.set(card, { overflow: 'hidden' });
-                
-                const overlay = card.querySelector('.featured-image-overlay');
-                const image = card.querySelector('.featured-image');
-                
-                gsap.set(overlay, { opacity: 1 });
-                
-                const cardHover = gsap.timeline({ paused: true })
-                    .to(overlay, {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        duration: 0.3
-                    })
-                    .to(image, {
-                        scale: 1.1,
-                        duration: 0.5,
-                        ease: 'power2.out'
-                    }, 0)
-                    .to(overlay.querySelector('h3'), {
-                        y: -5,
-                        duration: 0.3
-                    }, 0)
-                    .to(overlay.querySelector('.btn-secondary'), {
-                        scale: 1.1,
-                        duration: 0.3
-                    }, 0);
-                
-                card.addEventListener('mouseenter', () => cardHover.play());
-                card.addEventListener('mouseleave', () => cardHover.reverse());
-            });
+            const featuredCards = document.querySelectorAll('.featured-image-card');
+            if (featuredCards.length > 0) {
+                featuredCards.forEach(card => {
+                    gsap.set(card, { overflow: 'hidden' });
+                    
+                    const overlay = card.querySelector('.featured-image-overlay');
+                    const image = card.querySelector('.featured-image');
+                    
+                    if (overlay && image) {
+                        gsap.set(overlay, { opacity: 1 });
+                        
+                        const cardHover = gsap.timeline({ paused: true })
+                            .to(overlay, {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                duration: 0.3
+                            });
+                            
+                        // Add image scale animation
+                        cardHover.to(image, {
+                            scale: 1.1,
+                            duration: 0.5,
+                            ease: 'power2.out'
+                        }, 0);
+                        
+                        // Add title animation if it exists
+                        const title = overlay.querySelector('h3');
+                        if (title) {
+                            cardHover.to(title, {
+                                y: -5,
+                                duration: 0.3
+                            }, 0);
+                        }
+                        
+                        // Add button animation if it exists
+                        const button = overlay.querySelector('.btn-secondary');
+                        if (button) {
+                            cardHover.to(button, {
+                                scale: 1.1,
+                                duration: 0.3
+                            }, 0);
+                        }
+                        
+                        card.addEventListener('mouseenter', () => cardHover.play());
+                        card.addEventListener('mouseleave', () => cardHover.reverse());
+                    }
+                });
+            }
             
             // Initialize ScrollTrigger animations for other sections
             if (typeof ScrollTrigger !== 'undefined') {

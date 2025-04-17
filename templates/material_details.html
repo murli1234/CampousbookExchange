@@ -277,6 +277,14 @@
                     const target = this.getAttribute('data-target');
                     const modal = document.querySelector(target);
                     modal.style.display = 'block';
+                    
+                    // Animate modal with GSAP
+                    if (typeof gsap !== 'undefined') {
+                        gsap.fromTo(modal.querySelector('.modal-content'), 
+                            { y: -50, opacity: 0 }, 
+                            { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' }
+                        );
+                    }
                 });
             });
             
@@ -284,16 +292,138 @@
             closeButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const modal = this.closest('.modal');
-                    modal.style.display = 'none';
+                    
+                    // Animate modal close with GSAP
+                    if (typeof gsap !== 'undefined') {
+                        gsap.to(modal.querySelector('.modal-content'), {
+                            y: -50, 
+                            opacity: 0, 
+                            duration: 0.3, 
+                            ease: 'power2.in',
+                            onComplete: () => {
+                                modal.style.display = 'none';
+                            }
+                        });
+                    } else {
+                        modal.style.display = 'none';
+                    }
                 });
             });
             
             // Close modal when clicking outside
             window.addEventListener('click', function(event) {
                 if (event.target.classList.contains('modal')) {
-                    event.target.style.display = 'none';
+                    // Animate modal close with GSAP
+                    if (typeof gsap !== 'undefined') {
+                        gsap.to(event.target.querySelector('.modal-content'), {
+                            y: -50, 
+                            opacity: 0, 
+                            duration: 0.3, 
+                            ease: 'power2.in',
+                            onComplete: () => {
+                                event.target.style.display = 'none';
+                            }
+                        });
+                    } else {
+                        event.target.style.display = 'none';
+                    }
                 }
             });
+            
+            // Initialize GSAP animations for material details
+            if (typeof gsap !== 'undefined') {
+                // Create a main timeline
+                const materialTimeline = gsap.timeline();
+                
+                // Animate material image and info sections
+                materialTimeline.from('.material-detail-image', {
+                    x: -50,
+                    opacity: 0,
+                    duration: 0.8,
+                    ease: 'power2.out'
+                })
+                .from('.material-detail-title', {
+                    y: -20,
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: 'power2.out'
+                }, '-=0.4')
+                .from('.material-detail-meta-item', {
+                    opacity: 0,
+                    x: -20,
+                    stagger: 0.1,
+                    duration: 0.5,
+                    ease: 'power2.out'
+                }, '-=0.3')
+                .from('.material-detail-price', {
+                    scale: 0.8,
+                    opacity: 0,
+                    duration: 0.5,
+                    ease: 'back.out(1.7)'
+                }, '-=0.2');
+                
+                // Setup ScrollTrigger animations for lower sections
+                if (typeof ScrollTrigger !== 'undefined') {
+                    // Owner section animation
+                    gsap.from('.material-detail-owner', {
+                        scrollTrigger: {
+                            trigger: '.material-detail-owner',
+                            start: 'top 80%'
+                        },
+                        y: 50,
+                        opacity: 0,
+                        duration: 0.7,
+                        ease: 'power2.out'
+                    });
+                    
+                    // Rating form animation
+                    const ratingForm = document.querySelector('.rating-form');
+                    if (ratingForm) {
+                        gsap.from(ratingForm, {
+                            scrollTrigger: {
+                                trigger: ratingForm,
+                                start: 'top 80%'
+                            },
+                            y: 50,
+                            opacity: 0,
+                            duration: 0.7,
+                            ease: 'power2.out'
+                        });
+                    }
+                    
+                    // Rating items animations
+                    const ratingItems = document.querySelectorAll('.rating-item');
+                    if (ratingItems.length > 0) {
+                        gsap.from(ratingItems, {
+                            scrollTrigger: {
+                                trigger: '.rating-list',
+                                start: 'top 80%'
+                            },
+                            y: 30,
+                            opacity: 0,
+                            stagger: 0.15,
+                            duration: 0.6,
+                            ease: 'power2.out'
+                        });
+                    }
+                    
+                    // Similar materials animation
+                    const similarCards = document.querySelectorAll('.similar-materials .material-card');
+                    if (similarCards.length > 0) {
+                        gsap.from(similarCards, {
+                            scrollTrigger: {
+                                trigger: '.similar-materials',
+                                start: 'top 80%'
+                            },
+                            y: 50,
+                            opacity: 0,
+                            stagger: 0.15,
+                            duration: 0.6,
+                            ease: 'power2.out'
+                        });
+                    }
+                }
+            }
         });
     </script>
 {% endblock %}
