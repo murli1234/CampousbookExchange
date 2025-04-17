@@ -254,4 +254,118 @@
 
 {% block scripts %}
     <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hero section staggered animations
+            const heroTimeline = gsap.timeline();
+            heroTimeline.from('.hero h1', {
+                opacity: 0,
+                y: 50,
+                duration: 0.8,
+                ease: 'power2.out'
+            })
+            .from('.hero p', {
+                opacity: 0,
+                y: 30,
+                duration: 0.8,
+                ease: 'power2.out'
+            }, '-=0.4')
+            .from('.search-container', {
+                opacity: 0,
+                y: 20,
+                duration: 0.8,
+                ease: 'power3.out'
+            }, '-=0.4')
+            .from('.tags-container .tag', {
+                opacity: 0,
+                scale: 0.8,
+                stagger: 0.05,
+                ease: 'back.out(1.7)'
+            }, '-=0.2');
+            
+            // Featured image cards animation
+            gsap.utils.toArray('.featured-image-card').forEach(card => {
+                gsap.set(card, { overflow: 'hidden' });
+                
+                const overlay = card.querySelector('.featured-image-overlay');
+                const image = card.querySelector('.featured-image');
+                
+                gsap.set(overlay, { opacity: 1 });
+                
+                const cardHover = gsap.timeline({ paused: true })
+                    .to(overlay, {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        duration: 0.3
+                    })
+                    .to(image, {
+                        scale: 1.1,
+                        duration: 0.5,
+                        ease: 'power2.out'
+                    }, 0)
+                    .to(overlay.querySelector('h3'), {
+                        y: -5,
+                        duration: 0.3
+                    }, 0)
+                    .to(overlay.querySelector('.btn-secondary'), {
+                        scale: 1.1,
+                        duration: 0.3
+                    }, 0);
+                
+                card.addEventListener('mouseenter', () => cardHover.play());
+                card.addEventListener('mouseleave', () => cardHover.reverse());
+            });
+            
+            // Initialize ScrollTrigger animations for other sections
+            if (typeof ScrollTrigger !== 'undefined') {
+                // Recent materials reveal
+                const materialsGrid = document.querySelector('.materials-grid');
+                if (materialsGrid) {
+                    const materialCards = materialsGrid.querySelectorAll('.material-card');
+                    gsap.from(materialCards, {
+                        scrollTrigger: {
+                            trigger: materialsGrid,
+                            start: 'top 70%',
+                        },
+                        opacity: 0,
+                        y: 50,
+                        duration: 0.8,
+                        stagger: 0.1,
+                        ease: 'power2.out'
+                    });
+                }
+                
+                // How it works section
+                const howItWorks = document.querySelector('.how-it-works');
+                if (howItWorks) {
+                    const stepCards = howItWorks.querySelectorAll('.step-card');
+                    gsap.from(stepCards, {
+                        scrollTrigger: {
+                            trigger: howItWorks,
+                            start: 'top 70%',
+                        },
+                        opacity: 0,
+                        y: 70,
+                        duration: 0.9,
+                        stagger: 0.15,
+                        ease: 'back.out(1.2)'
+                    });
+                }
+                
+                // CTA section reveal
+                const ctaSection = document.querySelector('.cta-section');
+                if (ctaSection) {
+                    gsap.from(ctaSection, {
+                        scrollTrigger: {
+                            trigger: ctaSection,
+                            start: 'top 80%',
+                        },
+                        opacity: 0,
+                        backgroundPosition: '200% center',
+                        duration: 1,
+                        ease: 'power2.out'
+                    });
+                }
+            }
+        });
+    </script>
 {% endblock %}

@@ -18,6 +18,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Handle Flash Message Dismissal
     initializeFlashMessages();
+    
+    // Initialize GSAP animations for page loading
+    initializePageLoadAnimations();
+    
+    // Initialize links for smooth page transitions
+    initializePageTransitions();
 });
 
 // Initialize dropdown toggles
@@ -265,4 +271,81 @@ function switchTab(event, tabId) {
     // Show the selected tab content and mark button as active
     document.getElementById(tabId).style.display = 'block';
     event.currentTarget.classList.add('active');
+}
+
+// Initialize GSAP animations for page loading
+function initializePageLoadAnimations() {
+    if (typeof gsap === 'undefined') return;
+    
+    // Create main timeline for page entry animations
+    const mainTimeline = gsap.timeline();
+    
+    // Animate the header
+    mainTimeline.from('.site-header', {
+        y: -50,
+        opacity: 0,
+        duration: 0.6,
+        ease: 'power2.out'
+    });
+    
+    // Stagger animate the navigation links
+    mainTimeline.from('.site-nav li', {
+        opacity: 0,
+        y: -15,
+        stagger: 0.1,
+        duration: 0.5,
+        ease: 'power2.out'
+    }, '-=0.3');
+    
+    // Only animate main content elements if not handled by page-specific animations
+    if (!document.querySelector('.hero')) {
+        mainTimeline.from('main h1, main h2', {
+            opacity: 0,
+            y: 30,
+            duration: 0.7,
+            stagger: 0.2,
+            ease: 'power2.out'
+        }, '-=0.2');
+        
+        mainTimeline.from('.container:not(.flashes)', {
+            opacity: 0,
+            y: 20,
+            duration: 0.7,
+            stagger: 0.2,
+            ease: 'power2.out'
+        }, '-=0.4');
+    }
+}
+
+// Initialize link transitions with GSAP
+function initializePageTransitions() {
+    if (typeof gsap === 'undefined') return;
+    
+    // Add click handlers to internal links for page transitions
+    const internalLinks = document.querySelectorAll('a[href^="/"]:not([target="_blank"])');
+    
+    internalLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            // Skip links with modifiers or non-standard clicks
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            
+            // Skip links with data-no-transition attribute
+            if (this.getAttribute('data-no-transition') !== null) return;
+            
+            e.preventDefault();
+            const target = this.getAttribute('href');
+            
+            // Fade out current content
+            gsap.to('main', {
+                opacity: 0,
+                y: -20, 
+                duration: 0.3,
+                ease: 'power2.in',
+                onComplete: () => {
+                    // Navigate to the new page after animation completes
+                    window.location.href = target;
+                }
+            });
+        });
+    });
 }
